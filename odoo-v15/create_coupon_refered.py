@@ -20,12 +20,12 @@ def get_odoo_connection(url, db, username, password):
     print("Error de conexión:", error)
     return None
 
-def buscar_programa_cupon(models, db, uid, password, technician_name):
+def search_program_coupon(models, db, uid, password, technician_name):
   """Busca el programa de cupón del técnico por su nombre."""
   return models.execute_kw(db, uid, password, 'coupon.program', 'search_read',
             [[['name', 'ilike', '%' + technician_name + '%']]],{'fields': ['id', 'name']})
 
-def update_programa_cupon(models, db, uid, password, coupon_program_technician, product_code, coupon_validity):
+def update_program_coupon(models, db, uid, password, coupon_program_technician, product_code, coupon_validity):
   update_data = {
       'rule_products_domain': '["&",["sale_ok","=",True],["default_code","=","%s"]]' % product_code,
       'validity_duration': coupon_validity,
@@ -33,7 +33,7 @@ def update_programa_cupon(models, db, uid, password, coupon_program_technician, 
   models.execute_kw(db, uid, password, 'coupon.program', 'write', [[coupon_program_technician[0]['id']], update_data])
   print("Programa de cupón actualizado.")
 
-def create_programa_cupon(models, db, uid, password, technician_name, product_code, coupon_validity):
+def create_program_coupon(models, db, uid, password, technician_name, product_code, coupon_validity):
   technician = models.execute_kw(db, uid, password, 'res.partner', 'search_read',
                 [[['name', 'ilike', technician_name]]])
   program_coupon_data = {
@@ -58,7 +58,7 @@ def create_programa_cupon(models, db, uid, password, technician_name, product_co
   program_coupon_created = models.execute_kw(db_taller, uid, password_taller, 'coupon.program', 'search_read',
       [[['id', '=', program_coupon_created_id]]])
 
-def crear_cupon_referido(models, db, uid, password, coupon_program_id):
+def create_referred_coupon(models, db, uid, password, coupon_program_id):
     """Crea un cupón de referido asociado al programa de cupón dado."""
     coupon_data = {'program_id': coupon_program_id}
     coupon_created = models.execute_kw(db, uid, password, 'coupon.coupon', 'create', [coupon_data])
@@ -67,7 +67,7 @@ def crear_cupon_referido(models, db, uid, password, coupon_program_id):
                                     [[['id', '=', coupon_created]]], {'fields': ['code']})
     print("Código del cupón:", coupon_code[0]['code'])
 
-def actualizar_punto_venta(models, db, uid, password, pos_name, coupon_program_id):
+def update_post_sale(models, db, uid, password, pos_name, coupon_program_id):
   """Actualiza el punto de venta con el programa de cupón del técnico."""
   pos = models.execute_kw(db, uid, password, 'pos.config', 'search_read',
                           [[['name', 'ilike', pos_name]]])
@@ -80,15 +80,15 @@ def actualizar_punto_venta(models, db, uid, password, pos_name, coupon_program_i
   else:
       print("Punto de venta no encontrado.")
 
-def crear_o_actualizar_programa_cupon(models, db, uid, password, technician_name, product_code, coupon_validity):
+def process_program_coupon(models, db, uid, password, technician_name, product_code, coupon_validity):
   """Crea o actualiza el programa de cupón del técnico."""
-  coupon_program_technician = buscar_programa_cupon(models, db, uid, password, technician_name)
+  coupon_program_technician = search_program_coupon(models, db, uid, password, technician_name)
   if coupon_program_technician:
     print("Programa de cupón encontrado.")
-    update_programa_cupon(models, db, uid, password, coupon_program_technician, product_code, coupon_validity)
+    update_program_coupon(models, db, uid, password, coupon_program_technician, product_code, coupon_validity)
   else:
     print("Programa de cupón no encontrado.")
-    create_programa_cupon(models, db, uid, password, technician_name, product_code, coupon_validity)
+    create_program_coupon(models, db, uid, password, technician_name, product_code, coupon_validity)
 
 # Establece la conexión con Odoo
 uid = get_odoo_connection(url_taller, db_taller, username_taller, password_taller)
@@ -103,12 +103,12 @@ if uid:
   product_code = input("Ingrese el código de refencia interna del producto: ")
   coupon_validity = int(input("Ingrese la cantidad de días de validez del cupón: "))
 
-  crear_o_actualizar_programa_cupon(models, db_taller, uid, password_taller, technician_name, product_code, coupon_validity)
+  process_program_coupon(models, db_taller, uid, password_taller, technician_name, product_code, coupon_validity)
   
   print("Crear cupón de referido")
   coupon_quantity = int(input("Ingrese la cantidad de cupones a generar: "))
   
-  coupon_program_technician = buscar_programa_cupon(models, db_taller, uid, password_taller, technician_name)
+  coupon_program_technician = search_program_coupon(models, db_taller, uid, password_taller, technician_name)
 
   if coupon_program_technician:
     print("Programa de cupón del técnico encontrado.")
@@ -119,11 +119,11 @@ if uid:
     coupon_program_id = coupon_program_created[0]['id']
 
   for i in range(coupon_quantity):
-    crear_cupon_referido(models, db_taller, uid, password_taller, coupon_program_id)
+    create_referred_coupon(models, db_taller, uid, password_taller, coupon_program_id)
   
  # Actualizar el punto de venta con el programa de cupón del técnico
   pos_names = input("Ingrese los nombres de los puntos de venta separados por coma: ").split(',')
   for pos_name in pos_names:
-    actualizar_punto_venta(models, db_taller, uid, password_taller, pos_name.strip(), coupon_program_id)
+    update_post_sale(models, db_taller, uid, password_taller, pos_name.strip(), coupon_program_id)
 else:
   print("No se pudo establecer conexión con Odoo.")
