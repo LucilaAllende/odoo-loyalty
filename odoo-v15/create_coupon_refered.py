@@ -27,10 +27,22 @@ if uid:
   print("Conexión exitosa con Odoo.")
   # Inicializa el punto final de los modelos.
   models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(url_taller))
-  # Ingresar codigo de producto por consola
-  #product_code = input("Ingrese el código del producto: ")
 
-  coupon_data = {
+  print("Generar cupón referido")
+
+  # Ingresar nombre del técnico dueño del cupón
+  technician_name = input("Ingrese el nombre del técnico dueño del cupón: ")
+
+  # Ingresar codigo de producto por consola
+  product_code = input("Ingrese el código del producto: ")
+
+  # Ingresar cantidad de cupones a generar
+  coupon_quantity = int(input("Ingrese la cantidad de cupones a generar: "))
+
+  # Buscar el programa de cupón del técnico
+  
+
+  program_coupon_data = {
     'name': 'Cupon Prueba',  
     'rule_products_domain': '["&",["sale_ok","=",True],["default_code","=","1004"]]',
     'rule_min_quantity': 1,
@@ -50,26 +62,45 @@ if uid:
 
   """   algo = models.execute_kw(db_taller, uid, password_taller, 'coupon.program', 'create', [coupon_data])
     print("Cupon creado:", algo) """
-  """   # Obtener los IDs de los cupones
+    # Obtener los IDs de los cupones
     # Obtener la estructura del modelo 'coupon.program'
-    coupon_fields = models.execute_kw(db_taller, uid, password_taller, 'coupon.program', 'fields_get', [], {})
+  coupon_fields = models.execute_kw(db_taller, uid, password_taller, 'coupon.program', 'fields_get', [], {})
 
-    # Obtener los nombres de los campos
-    all_fields = list(coupon_fields.keys())
+  # Obtener los nombres de los campos
+  all_fields = list(coupon_fields.keys())
 
-    # Eliminar 'valid_partner_ids' de la lista de campos
-    if 'valid_partner_ids' in all_fields:
-        all_fields.remove('valid_partner_ids')
+  # Eliminar 'valid_partner_ids' de la lista de campos
+  if 'valid_partner_ids' in all_fields:
+      all_fields.remove('valid_partner_ids')
 
-    # Obtener los datos del cupón excluyendo 'valid_partner_ids'
-    coupons = models.execute_kw(db_taller, uid, password_taller, 'coupon.program', 'read', [[83,94]], {'fields': all_fields})
+  # Obtener los datos del cupón excluyendo 'valid_partner_ids'
+  coupons = models.execute_kw(db_taller, uid, password_taller, 'coupon.program', 'read', [[83]], {'fields': all_fields})
 
-    # Imprimir los detalles de cada cupón
-    for coupon in coupons:
-        print("Detalle del cupón:", coupon) """
+  # Imprimir los detalles de cada cupón
+  for coupon in coupons:
+      print("Detalle del programa cupón:", coupon)
   
   """   result = models.execute_kw(db_taller, uid, password_taller, 'coupon.program', 'generate_coupon', [94])
     print("Cupón generado:", result) """
+  
+  coupon_fields = models.execute_kw(db_taller, uid, password_taller, 'coupon.coupon', 'fields_get', [], {})
+
+  # Obtener los nombres de los campos
+  all_fields = list(coupon_fields.keys())
+
+  # Imprimir los nombres de los campos
+  #print("Campos del modelo 'coupon.coupon':", all_fields)
+
+  coupon = models.execute_kw(db_taller, uid, password_taller, 'coupon.coupon', 'read', [[6]], {'fields': all_fields})
+
+  print("Detalle del cupón:", coupon)
+
+  coupon_data = {
+    'program_id': 83,
+  }
+
+  coupon_id = models.execute_kw(db_taller, uid, password_taller, 'coupon.coupon', 'create', [coupon_data])
+  print("Cupón creado:", coupon_id)
 
 else:
   print("No se pudo establecer conexión con Odoo.")
