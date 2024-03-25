@@ -45,16 +45,23 @@ if uid:
   pos = models.execute_kw(db_taller, uid, password_taller, 'pos.config', 'search_read',
     [[['name', 'ilike', pos_name]]])
   if pos:
-    print("Punto de venta encontrado.", pos)
+    print("Punto de venta encontrado.")
     if coupon_program_technician:
-      print("Programa de cupón del técnico encontrado.")
-      # Actualizar el registro
-      models.execute_kw(db_taller, uid, password_taller, 'pos.config', 'write', [[pos[0]['id']], {'coupon_program_ids': coupon_program_technician[0]['id']}])
+      # Obtener los IDs existentes de los programas de cupón del punto de venta
+      existing_coupon_program_ids = pos[0]['coupon_program_ids']
+      print("Programas de cupón existentes en el punto de venta:", existing_coupon_program_ids)
+      
+      # Agregar el nuevo ID del programa de cupón
+      existing_coupon_program_ids.append(coupon_program_technician[0]['id'] )
+      print("Programas de cupón actualizados en el punto de venta:", existing_coupon_program_ids)
+      
+      # Actualizar el registro del punto de venta con los IDs actualizados de los programas de cupón
+      models.execute_kw(db_taller, uid, password_taller, 'pos.config', 'write', 
+                        [[pos[0]['id']], {'coupon_program_ids': [(6, 0, existing_coupon_program_ids)]}])
       print("Programa de cupón del técnico agregado al punto de venta.")
-  """     else:
-        print("Programa de cupón creado.")
-        # Actualizar el registro
-        models.execute_kw(db_taller, uid, password_taller, 'pos.config', 'write', [[pos[0]['id']], {'coupon_program_ids': program_coupon_created[0]['id']}])
-        print("Programa de cupón creado agregado al punto de venta.") """
+      """ La tupla (6, 0, existing_coupon_program_ids) indica que estamos reemplazando todos los valores 
+      existentes del campo coupon_program_ids con los valores de existing_coupon_program_ids. El 6 indica 
+      la acción "reemplazar", el 0 es un identificador técnico, y existing_coupon_program_ids es la 
+      lista de IDs actualizados que queremos asignar al campo."""
 else:
   print("No se pudo establecer conexión con Odoo.")
