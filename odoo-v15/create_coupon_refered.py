@@ -103,7 +103,7 @@ if uid:
   product_code = input("Ingrese el código de refencia interna del producto: ")
   coupon_validity = int(input("Ingrese la cantidad de días de validez del cupón: "))
 
-  crear_o_actualizar_programa_cupon()
+  crear_o_actualizar_programa_cupon(models, db_taller, uid, password_taller, technician_name, product_code, coupon_validity)
   
   print("Crear cupón de referido")
   coupon_quantity = int(input("Ingrese la cantidad de cupones a generar: "))
