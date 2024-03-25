@@ -103,5 +103,37 @@ if uid:
     coupon_code = models.execute_kw(db_taller, uid, password_taller, 'coupon.coupon', 'search_read',
       [[['id', '=', coupon_created]]], {'fields': ['code']})
     print("Código del cupón:", coupon_code[0]['code'])
+  # Actualizar el punto de venta con el programa de cupón del técnico
+  # Ingresar nombre del punto de venta
+  pos_name = input("Ingrese el nombre del punto de venta: ")
+  # Buscar el punto de venta
+  pos = models.execute_kw(db_taller, uid, password_taller, 'pos.config', 'search_read',
+    [[['name', 'ilike', pos_name]]])
+  if pos:
+    print("Punto de venta encontrado.")
+    if coupon_program_technician:
+      # Obtener los IDs existentes de los programas de cupón del punto de venta
+      existing_coupon_program_ids = pos[0]['coupon_program_ids']
+      print("Programas de cupón existentes en el punto de venta E:", existing_coupon_program_ids)
+      
+      # Agregar el nuevo ID del programa de cupón
+      existing_coupon_program_ids.append(coupon_program_technician[0]['id'] )
+      print("Programas de cupón actualizados en el punto de venta:", existing_coupon_program_ids)
+      
+      # Actualizar el registro del punto de venta con los IDs actualizados de los programas de cupón
+      models.execute_kw(db_taller, uid, password_taller, 'pos.config', 'write', 
+        [[pos[0]['id']], {'coupon_program_ids': [(6, 0, existing_coupon_program_ids)]}])
+    elif program_coupon_created:
+      # Obtener los IDs existentes de los programas de cupón del punto de venta
+      existing_coupon_program_ids = pos[0]['coupon_program_ids']
+      print("Programas de cupón existentes en el punto de venta C:", existing_coupon_program_ids)
+      
+      # Agregar el nuevo ID del programa de cupón
+      existing_coupon_program_ids.append(program_coupon_created[0]['id'] )
+      print("Programas de cupón actualizados en el punto de venta:", existing_coupon_program_ids)
+      
+      # Actualizar el registro del punto de venta con los IDs actualizados de los programas de cupón
+      models.execute_kw(db_taller, uid, password_taller, 'pos.config', 'write', 
+        [[pos[0]['id']], {'coupon_program_ids': [(6, 0, existing_coupon_program_ids)]}])
 else:
   print("No se pudo establecer conexión con Odoo.")
