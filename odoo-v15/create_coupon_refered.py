@@ -49,8 +49,8 @@ if uid:
     print("Programa de cupón encontrado.")
     # Datos a actualizar
     update_data = {
-        'rule_products_domain': '[["&",["sale_ok","=",True],["default_code","=","%s"]]]' % product_code,
-        'validity_duration': coupon_validity,
+      'rule_products_domain': '["&",["sale_ok","=",True],["default_code","=","%s"]]' % product_code,
+      'validity_duration': coupon_validity,
     }
 
     # Actualizar el registro
@@ -78,18 +78,30 @@ if uid:
       'program_type': 'coupon_program',
     }
 
-    program_coupon_created = models.execute_kw(db_taller, uid, password_taller, 'coupon.program', 'create', [program_coupon_data])
-    print("Programa de cupón creado:", program_coupon_created) 
+    program_coupon_created_id = models.execute_kw(db_taller, uid, password_taller, 'coupon.program', 'create', [program_coupon_data])
+    print("Programa de cupón creado:", program_coupon_created_id)
+    program_coupon_created = models.execute_kw(db_taller, uid, password_taller, 'coupon.program', 'search_read',
+      [[['id', '=', program_coupon_created_id]]])
 
   print("Crear cupon de referido")
   # Ingresar cantidad de cupones a generar
   coupon_quantity = int(input("Ingrese la cantidad de cupones a generar: "))
   # Crear cupones de referido
   for i in range(coupon_quantity):
-    coupon_data = {
-      'program_id': coupon_program_technician[0]['id'],
-    }
+    if coupon_program_technician:
+      print("Programa de cupón del técnico encontrado.", coupon_program_technician[0]['id'])
+      coupon_data = {
+        'program_id': coupon_program_technician[0]['id'],
+      }
+    else:
+      print("Programa de cupón creado.", program_coupon_created[0]['id'])
+      coupon_data = {
+        'program_id': program_coupon_created[0]['id'],
+      }
     coupon_created = models.execute_kw(db_taller, uid, password_taller, 'coupon.coupon', 'create', [coupon_data])
     print("Cupón de referido creado:", coupon_created)
+    coupon_code = models.execute_kw(db_taller, uid, password_taller, 'coupon.coupon', 'search_read',
+      [[['id', '=', coupon_created]]], {'fields': ['code']})
+    print("Código del cupón:", coupon_code[0]['code'])
 else:
   print("No se pudo establecer conexión con Odoo.")
