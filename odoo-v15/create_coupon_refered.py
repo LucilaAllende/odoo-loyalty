@@ -34,73 +34,62 @@ if uid:
   technician_name = input("Ingrese el nombre del técnico dueño del cupón: ")
 
   # Ingresar codigo de producto por consola
-  product_code = input("Ingrese el código del producto: ")
+  product_code = input("Ingrese el código de refencia interna del producto: ")
 
-  # Ingresar cantidad de cupones a generar
-  coupon_quantity = int(input("Ingrese la cantidad de cupones a generar: "))
+  # Ingresar cantidad de días de validez del cupón
+  coupon_validity = int(input("Ingrese la cantidad de días de validez del cupón: "))
 
   # Buscar el programa de cupón del técnico
+  coupon_program_technician = models.execute_kw(db_taller, uid, password_taller, 'coupon.program', 'search_read',
+      [[['name', 'ilike','%' + technician_name + '%']]], {'fields': ['id', 'name']})
   
+  print("Programa de cupón del técnico:", coupon_program_technician)
 
-  program_coupon_data = {
-    'name': 'Cupon Prueba',  
-    'rule_products_domain': '["&",["sale_ok","=",True],["default_code","=","1004"]]',
-    'rule_min_quantity': 1,
-    'rule_minimum_amount': 1,
-    'rule_minimum_amount_tax_inclusion': 'tax_excluded',
-    'coupon_type': 'referred',
-    'assigned_customer': 44603,
-    'reward_type': 'discount',
-    'discount_line_product_id': 4757,
-    'validity_duration': 3, # Siempre en días
-    'discount_type': 'percentage',
-    'discount_percentage': 10,
-    'discount_apply_on': 'on_order',
-    'active': True,
-    'program_type': 'coupon_program',
-  }
+  if coupon_program_technician:
+    print("Programa de cupón encontrado.")
+    # Datos a actualizar
+    update_data = {
+        'rule_products_domain': '[["&",["sale_ok","=",True],["default_code","=","%s"]]]' % product_code,
+        'validity_duration': coupon_validity,
+    }
 
-  """   algo = models.execute_kw(db_taller, uid, password_taller, 'coupon.program', 'create', [coupon_data])
-    print("Cupon creado:", algo) """
-    # Obtener los IDs de los cupones
-    # Obtener la estructura del modelo 'coupon.program'
-  coupon_fields = models.execute_kw(db_taller, uid, password_taller, 'coupon.program', 'fields_get', [], {})
+    # Actualizar el registro
+    models.execute_kw(db_taller, uid, password_taller, 'coupon.program', 'write', [[coupon_program_technician[0]['id']], update_data])
+    print("Programa de cupón actualizado.")
+  else:
+    # Buscar al técnico por nombre
+    technician = models.execute_kw(db_taller, uid, password_taller, 'res.partner', 'search_read',
+      [[['name', 'ilike', technician_name]]])
+    program_coupon_data = {
+      'name': 'Cupon %s' % technician_name,  
+      'rule_products_domain': '["&",["sale_ok","=",True],["default_code","=","%s"]]' % product_code,
+      'rule_min_quantity': 1,
+      'rule_minimum_amount': 1,
+      'rule_minimum_amount_tax_inclusion': 'tax_excluded',
+      'coupon_type': 'referred',
+      'assigned_customer': technician[0]['id'],
+      'reward_type': 'discount',
+      'discount_line_product_id': 4757,
+      'validity_duration': coupon_validity,
+      'discount_type': 'percentage',
+      'discount_percentage': 10,
+      'discount_apply_on': 'on_order',
+      'active': True,
+      'program_type': 'coupon_program',
+    }
 
-  # Obtener los nombres de los campos
-  all_fields = list(coupon_fields.keys())
+    program_coupon_created = models.execute_kw(db_taller, uid, password_taller, 'coupon.program', 'create', [program_coupon_data])
+    print("Programa de cupón creado:", program_coupon_created) 
 
-  # Eliminar 'valid_partner_ids' de la lista de campos
-  if 'valid_partner_ids' in all_fields:
-      all_fields.remove('valid_partner_ids')
-
-  # Obtener los datos del cupón excluyendo 'valid_partner_ids'
-  coupons = models.execute_kw(db_taller, uid, password_taller, 'coupon.program', 'read', [[83]], {'fields': all_fields})
-
-  # Imprimir los detalles de cada cupón
-  for coupon in coupons:
-      print("Detalle del programa cupón:", coupon)
-  
-  """   result = models.execute_kw(db_taller, uid, password_taller, 'coupon.program', 'generate_coupon', [94])
-    print("Cupón generado:", result) """
-  
-  coupon_fields = models.execute_kw(db_taller, uid, password_taller, 'coupon.coupon', 'fields_get', [], {})
-
-  # Obtener los nombres de los campos
-  all_fields = list(coupon_fields.keys())
-
-  # Imprimir los nombres de los campos
-  #print("Campos del modelo 'coupon.coupon':", all_fields)
-
-  coupon = models.execute_kw(db_taller, uid, password_taller, 'coupon.coupon', 'read', [[6]], {'fields': all_fields})
-
-  print("Detalle del cupón:", coupon)
-
-  coupon_data = {
-    'program_id': 83,
-  }
-
-  coupon_id = models.execute_kw(db_taller, uid, password_taller, 'coupon.coupon', 'create', [coupon_data])
-  print("Cupón creado:", coupon_id)
-
+  print("Crear cupon de referido")
+  # Ingresar cantidad de cupones a generar
+  coupon_quantity = int(input("Ingrese la cantidad de cupones a generar: "))
+  # Crear cupones de referido
+  for i in range(coupon_quantity):
+    coupon_data = {
+      'program_id': coupon_program_technician[0]['id'],
+    }
+    coupon_created = models.execute_kw(db_taller, uid, password_taller, 'coupon.coupon', 'create', [coupon_data])
+    print("Cupón de referido creado:", coupon_created)
 else:
   print("No se pudo establecer conexión con Odoo.")
