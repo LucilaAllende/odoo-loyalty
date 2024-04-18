@@ -1,1 +1,35 @@
+# Archivos generados automáticamente
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Directorio de entorno virtual (por ejemplo, virtualenv, venv)
+venv/
+.env/
 .env
+
+# Archivos de registro y archivos temporales
+*.log
+logs/
+*.swp
+.DS_Store
+*.sqlite
+
+# Carpeta de migraciones de Alembic
+migrations/
+
+# Archivos de configuración específicos de la máquina
+.env
+.env.*
+
+# Archivos de dependencias
+/.venv
+/.vscode
+
+# Archivos de caché y compilados
+.cache/
+.pytest_cache/
+dist/
+build/
+*.egg-info/
