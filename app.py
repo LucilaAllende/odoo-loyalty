@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from modules.process_pos_order_by_client import process_order_pos_bulk
+from modules.add_new_pos_order import create_pos_order
+from modules.process_pos_order_loyalty_by_client import process_order_pos_bulk
 from models.user import db, User
+from modules.process_pos_order_referral_by_client import process_order_pos_referral
 
 
 app = Flask(__name__)
@@ -20,6 +22,8 @@ def hola_mundo():
 def odoo_webhook():
     print('Solicitud recibida desde Odoo:', request)
     process_order_pos_bulk()
+    #process_order_pos_referral()
+    #create_pos_order()
     return jsonify({'mensaje': 'Solicitud recibida desde Odoo'})
 
 if __name__ == '__main__':
