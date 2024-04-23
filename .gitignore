@@ -25,6 +25,7 @@ migrations/
 # Archivos de dependencias
 /.venv
 /.vscode
+*.code-workspace
 
 # Archivos de caché y compilados
 .cache/
