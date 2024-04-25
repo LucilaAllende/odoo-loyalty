@@ -26,7 +26,7 @@ def send_message(para, mensaje):
       'Content-Type':'application/json'
   }
   print('Holaa send_message',data)
-  #response = requests.post(url_ws, json=data, headers=headers)
+  response = requests.post(url_ws, json=data, headers=headers)
   time.sleep(10)
   return []
 
@@ -52,6 +52,7 @@ def is_program_reward(db, uid, password, product_id):
 
 def process_multiple(product, point_cost, points_gained, loyalty_points_actual, loyalty_points_bd):
   """Procesa un producto que aparece más de una vez en la lista."""
+  print('Holaa process_multiple',product, point_cost, points_gained, loyalty_points_actual, loyalty_points_bd)
   if(loyalty_points_bd+points_gained-point_cost == loyalty_points_actual):
     print("El costo de puntos es igual a la cantidad de puntos gastados")
     return point_cost
@@ -130,8 +131,10 @@ def get_order_details(db, uid, password, order_id, loyalty_points_bd):
     for line in order_lines:
       if(is_program_reward(db, uid, password, line['product_id'][0])):
         points_cost = get_points_cost(db, uid, password, [generated_entries], balance_points, loyalty_points_bd, points_gained)
-
-    msg = f"¡Hola {name_client}! 👋\n\nGracias por tu compra de ${amount_total} en nuestro punto de venta ${name_shop}. Con esta transacción, has acumulado {points_gained} puntos y gastado {points_cost} . Ahora, tu saldo total de puntos es de {balance_points}.\n\nRecuerda que puedes canjear tus puntos en cualquier momento. Para más información sobre cómo redimir tus puntos, por favor visita este enlace: https://www.google.com \n\n¡Esperamos verte pronto!\nQue tengas un gran día."
+    if amount_total > 0:
+      msg = f"¡Hola {name_client}! 👋\n\nGracias por tu compra de ${amount_total:.2f}. Con esta transacción, has acumulado {int(points_gained)} puntos. Ahora, tu saldo total de puntos es de {int(balance_points)}.\n\nRecuerda que puedes canjear tus puntos en cualquier momento. Para más información sobre cómo redimir tus puntos, por favor visita este enlace: https://www.repuestoslineablanca.com/loyalty-points \n\n¡Esperamos verte pronto!\nQue tengas un gran día."
+    else:
+      msg = f"¡Hola {name_client}! 👋\n\nGracias por tu compra. En esta transacción usaste solo puntos de lealtad como medio de pago y has acumulado {int(points_gained)} puntos. Ahora, tu saldo total de puntos es de {int(balance_points)}.\n\nRecuerda que puedes canjear tus puntos en cualquier momento. Para más información sobre cómo redimir tus puntos, por favor visita este enlace: https://www.repuestoslineablanca.com/loyalty-points \n\n¡Esperamos verte pronto!\nQue tengas un gran día."
     return {
       'name_client': name_client,
       'sesion_payment': order['session_id'],
@@ -182,12 +185,12 @@ def process_order_pos_bulk():
         'pos.order', 
         'search_read', 
         [
-          [('state', 'in', ('paid', 'done', 'invoiced')), ('partner_id', '=', 51974)]
+          [('state', 'in', ('paid', 'done', 'invoiced')), ('partner_id', '=', 51979)]
         ], 
         {'order': 'date_order DESC', 'limit': 1}
     )
     print('Holaa pos_order',pos_order)
-    user = models.execute_kw(db_taller, uid, password_taller, 'res.partner', 'search_read', [[('id', '=', 51974)]], {'fields': ['id','name','mobile', 'email_normalized', 'l10n_latam_identification_type_id', 'loyalty_points', 'classification_id', 'vat']})
+    user = models.execute_kw(db_taller, uid, password_taller, 'res.partner', 'search_read', [[('id', '=', 51979)]], {'fields': ['id','name','mobile', 'email_normalized', 'l10n_latam_identification_type_id', 'loyalty_points', 'classification_id', 'vat']})
     loyalty_points_bd = 0
     userBD = exist_user(user[0]['vat'])
     if not userBD:
